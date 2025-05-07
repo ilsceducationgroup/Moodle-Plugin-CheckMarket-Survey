@@ -44,8 +44,8 @@ $string['checkmarketsurveysettings'] = 'ILSC CheckMarket surveys settings';
 $string['checkmarketsurveyfieldset'] = 'Custom fieldset';
 $string['ilscpluginname'] = 'ILSC CheckMarket Surveys';
 
-$string['responded_surveys'] = 'Responded surveys';
-$string['non_responded_surveys'] = 'Non-responded surveys';
+$string['responded_surveys'] = 'Completed Surveys';
+$string['non_responded_surveys'] = 'Ready to Respond';
 $string['survey_status'] = 'Survey Status';
 $string['respondent_status'] = 'Respondent Status';
 $string['date_invited'] = 'Date Invited';
