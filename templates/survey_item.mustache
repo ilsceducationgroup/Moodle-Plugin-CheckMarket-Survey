@@ -1,0 +1,15 @@
+<ion-item>
+    <ion-label>
+      <h2>{{title}}</h2>
+      <p><strong>{{#str}} survey_status, ilsccheckmarket {{/str}}: </strong>{{status}}</p>
+      <p><strong>{{#str}} respondent_status, ilsccheckmarket {{/str}}: </strong>{{respondent_status}}</p>
+      <p><strong>{{#str}} date_invited, ilsccheckmarket {{/str}}: </strong>{{date_invited}}</p>
+      <p><strong>{{#str}} date_responded, ilsccheckmarket {{/str}}: </strong>{{date_responded}}</p>
+    </ion-label>
+    {{#link}}
+      <a href="{{link}}" target="_blank" rel="noopener noreferrer" class="ion-activatable ion-focusable ion-ripple-effect">
+        <ion-button fill="outline" slot="end">{{#str}} open_survey, ilsccheckmarket {{/str}}</ion-button>
+      </a>
+    {{/link}}
+  </ion-item>
+  
