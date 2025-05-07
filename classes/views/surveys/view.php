@@ -14,6 +14,7 @@ class view extends \block_base
     public $ilsc_number = '';
     public ?int $courseid = null;
     public bool $user_is_admin = false;
+    public ?array $expiredSurveyData = null;
 
     public function __construct(?int $courseid, bool $user_is_admin)
     {
@@ -133,7 +134,8 @@ class view extends \block_base
         $content = \html_writer::start_tag('nav');
         $content .= \html_writer::start_div('nav nav-tabs', ['id' => 'nav-tab', 'role' => 'tablist']);
 
-        $content .= \html_writer::tag('button', 'Non-Responded Surveys', [
+        // First tab - Ready to Respond
+        $content .= \html_writer::tag('button', 'Ready to Respond', [
             'class' => 'nav-link active',
             'id' => 'nav-non-responded-tab',
             'data-bs-toggle' => 'tab',
@@ -144,7 +146,8 @@ class view extends \block_base
             'aria-selected' => 'true',
         ]);
 
-        $content .= \html_writer::tag('button', 'Responded Surveys', [
+        // Second tab - Completed Surveys
+        $content .= \html_writer::tag('button', 'Completed Surveys', [
             'class' => 'nav-link',
             'id' => 'nav-responded-tab',
             'data-bs-toggle' => 'tab',
@@ -155,20 +158,40 @@ class view extends \block_base
             'aria-selected' => 'false',
         ]);
 
+        // New third tab - Expired Surveys
+        $content .= \html_writer::tag('button', 'Expired Surveys', [
+            'class' => 'nav-link',
+            'id' => 'nav-expired-tab',
+            'data-bs-toggle' => 'tab',
+            'data-bs-target' => '#nav-expired',
+            'type' => 'button',
+            'role' => 'tab',
+            'aria-controls' => 'nav-expired',
+            'aria-selected' => 'false',
+        ]);
+
         $content .= \html_writer::end_div();
         $content .= \html_writer::end_tag('nav');
 
         $content .= \html_writer::start_div('tab-content', ['id' => 'nav-tabContent']);
-        
+
+        // Content for first tab - Ready to Respond
         $content .= \html_writer::start_div('tab-pane fade show active', ['id' => 'nav-home', 'role' => 'tabpanel', 'aria-labelledby' => 'nav-non-responded-tab', 'tabindex' => '0']);
         $nonRespondedTable = new table($this->nonRespondedSurveyData ?? []);
         $content .= $nonRespondedTable->get_content()->text;
-    
         $content .= \html_writer::end_div();
 
+        // Content for second tab - Completed Surveys
         $content .= \html_writer::start_div('tab-pane fade', ['id' => 'nav-profile', 'role' => 'tabpanel', 'aria-labelledby' => 'nav-responded-tab', 'tabindex' => '0']);
         $respondedTable = new table($this->respondedSurveyData ?? []);
         $content .= $respondedTable->get_content()->text;
+        $content .= \html_writer::end_div();
+
+        // Content for third tab - Expired Surveys
+        $content .= \html_writer::start_div('tab-pane fade', ['id' => 'nav-expired', 'role' => 'tabpanel', 'aria-labelledby' => 'nav-expired-tab', 'tabindex' => '0']);
+        $expiredTable = new table($this->expiredSurveyData ?? []);
+        $content .= $expiredTable->get_content()->text;
+        $content .= \html_writer::end_div();
 
         $content .= \html_writer::end_div();
         return $content;

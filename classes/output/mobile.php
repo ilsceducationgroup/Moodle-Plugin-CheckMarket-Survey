@@ -4,7 +4,7 @@ namespace mod_ilsccheckmarket\output;
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_ilsccheckmarket\services\panel_surveys AS service_panel_surveys;
+use mod_ilsccheckmarket\services\panel_surveys as service_panel_surveys;
 
 class mobile
 {
@@ -31,8 +31,7 @@ class mobile
         if (!$user_is_admin) {
             $email = null;
             $ilsc_number = $USER->idnumber;
-        }
-        else {
+        } else {
             $email = trim(optional_param('email', '', PARAM_TEXT));
             $ilsc_number = trim(optional_param('ilscnumber', '', PARAM_TEXT));
         }
@@ -55,59 +54,78 @@ class mobile
             return self::create_return_array($e->getMessage());
         }
 
+        // In mobile.php, after processing panel_data
         $respondedCompletelyId = 5;
+        $currentTime = time();
 
-        $dataToTemplate = [];
-        $data = array_map(function($row) {
+        $respondedSurveyData = [];
+        $nonRespondedSurveyData = [];
+        $expiredSurveyData = [];
+
+        // First transform panel_data into the format needed
+        $data = array_map(function ($row) {
             $dateInvited = $row->DateInvited ? date('Y-m-d H:i', strtotime($row->DateInvited)) : '';
             $dateResponded = $row->DateResponded ? date('Y-m-d H:i', strtotime($row->DateResponded)) : '';
             return [
                 'id' => $row->SurveyId,
                 'title' => $row->Title,
                 'status' => $row->SurveyStatus,
-                'respondent_status' => $row->ContactStatus,
+                'respondent_status' => $row->ContactStatusId,
                 'date_invited' => $dateInvited,
                 'date_responded' => $dateResponded,
                 'link' => $row->LiveUrl,
+                'end_date' => $row->EndDate,
+                'start_date' => $row->StartDate
             ];
         }, $panel_data);
 
-        $respondedSurveyData = array_filter($data, function($row) use ($respondedCompletelyId) {
-            return $row['respondent_status'] === $respondedCompletelyId;
-        });
+        foreach ($data as $row) {
+            // Check for response status 
+            if ($row['respondent_status'] === $respondedCompletelyId) {
+                $respondedSurveyData[] = $row;
+            }
+            // Check for expiration - assuming survey end date or 14 days after invitation
+            else {
+                $endTime = isset($row['end_date']) ? strtotime($row['end_date']) : PHP_INT_MAX;
+                $invitedTime = !empty($row['date_invited']) ? strtotime($row['date_invited']) : 0;
+                $twoWeeksAfterInvite = $invitedTime + (14 * 24 * 60 * 60);
 
-        $nonRespondedSurveyData = array_filter($data, function($row) use ($respondedCompletelyId) {
-            return $row['respondent_status'] !== $respondedCompletelyId;
-        });
-
-        $data = array_values($data);
-
-        if ($respondedSurveyData) {
-            $dataToTemplate[] = [
-                    'title' => get_string('responded_surveys', 'mod_ilsccheckmarket'),
-                    'count' => count($respondedSurveyData),
-                    'items' => $respondedSurveyData,
-            ];
+                if ($endTime < $currentTime || ($invitedTime && $twoWeeksAfterInvite < $currentTime)) {
+                    $expiredSurveyData[] = $row;
+                } else {
+                    $nonRespondedSurveyData[] = $row;
+                }
+            }
         }
+
+        $dataToTemplate = [];
 
         if ($nonRespondedSurveyData) {
             $dataToTemplate[] = [
-                    'title' => get_string('non_responded_surveys', 'mod_ilsccheckmarket'),
-                    'count' => count($nonRespondedSurveyData),
-                    'items' => $nonRespondedSurveyData,
+                'title' => get_string('ready_to_respond', 'mod_ilsccheckmarket'),
+                'count' => count($nonRespondedSurveyData),
+                'items' => $nonRespondedSurveyData,
             ];
         }
 
-        if (!$dataToTemplate) {
+        if ($respondedSurveyData) {
             $dataToTemplate[] = [
-                'title' => get_string('no_surveys_found', 'mod_ilsccheckmarket'),
-                'count' => 0,
-                'items' => [],
+                'title' => get_string('completed_surveys', 'mod_ilsccheckmarket'),
+                'count' => count($respondedSurveyData),
+                'items' => $respondedSurveyData,
+            ];
+        }
+
+        if ($expiredSurveyData) {
+            $dataToTemplate[] = [
+                'title' => get_string('expired_surveys', 'mod_ilsccheckmarket'),
+                'count' => count($expiredSurveyData),
+                'items' => $expiredSurveyData,
             ];
         }
 
         $template = 'mod_ilsccheckmarket/mobile';
-        
+
         return [
             'templates' => [
                 [
@@ -145,4 +163,3 @@ class mobile
         return false;
     }
 }
-

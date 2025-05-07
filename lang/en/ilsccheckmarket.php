@@ -46,6 +46,9 @@ $string['ilscpluginname'] = 'ILSC CheckMarket Surveys';
 
 $string['responded_surveys'] = 'Completed Surveys';
 $string['non_responded_surveys'] = 'Ready to Respond';
+$string['ready_to_respond'] = 'Ready to Respond';
+$string['completed_surveys'] = 'Completed Surveys';
+$string['expired_surveys'] = 'Expired Surveys';
 $string['survey_status'] = 'Survey Status';
 $string['respondent_status'] = 'Respondent Status';
 $string['date_invited'] = 'Date Invited';

@@ -22,11 +22,11 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require(__DIR__.'/../../config.php');
-require_once(__DIR__.'/lib.php');
- 
+require(__DIR__ . '/../../config.php');
+require_once(__DIR__ . '/lib.php');
+
 use mod_ilsccheckmarket\event\course_module_viewed;
-use mod_ilsccheckmarket\services\panel_surveys AS service_panel_surveys;
+use mod_ilsccheckmarket\services\panel_surveys as service_panel_surveys;
 use mod_ilsccheckmarket\views\surveys\view;
 
 
@@ -81,8 +81,7 @@ $user_is_admin = user_is_admin($USER);
 if (!$user_is_admin) {
     $email = null;
     $ilsc_number = $USER->idnumber;
-}
-else {
+} else {
     $email = trim(optional_param('email', '', PARAM_TEXT));
     $ilsc_number = trim(optional_param('ilscnumber', '', PARAM_TEXT));
 }
@@ -113,16 +112,38 @@ try {
 }
 
 $respondedCompletelyId = 5;
-$respondedSurveyData = array_filter($panel_data, function($row) use ($respondedCompletelyId) {
-    return $row->ContactStatusId === $respondedCompletelyId;
-});
+$currentTime = time();
 
-$nonRespondedSurveyData = array_filter($panel_data, function($row) use ($respondedCompletelyId) {
-    return $row->ContactStatusId !== $respondedCompletelyId;
-});
+// Three categories of surveys
+$respondedSurveyData = [];
+$nonRespondedSurveyData = [];
+$expiredSurveyData = [];
+
+foreach ($panel_data as $row) {
+    // Check if the survey has ended (using EndDate)
+    $endTime = strtotime($row->EndDate);
+    $startTime = strtotime($row->StartDate);
+
+    // Already responded survey
+    if ($row->ContactStatusId === $respondedCompletelyId) {
+        $respondedSurveyData[] = $row;
+    }
+    // Non-responded but expired survey
+    else if ($endTime < $currentTime || ($row->DateInvited && strtotime($row->DateInvited) + (14 * 24 * 60 * 60) < $currentTime)) {
+        // Survey is expired either because:
+        // 1. The survey end date has passed, or
+        // 2. More than 14 days have passed since the invitation (assuming links expire after 14 days)
+        $expiredSurveyData[] = $row;
+    }
+    // Non-responded and still active survey
+    else if ($startTime <= $currentTime && $currentTime <= $endTime) {
+        $nonRespondedSurveyData[] = $row;
+    }
+}
 
 $view->respondedSurveyData = $respondedSurveyData;
 $view->nonRespondedSurveyData = $nonRespondedSurveyData;
+$view->expiredSurveyData = $expiredSurveyData;
 
 $content = $view->get_content();
 
