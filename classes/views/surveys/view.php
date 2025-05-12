@@ -177,19 +177,19 @@ class view extends \block_base
 
         // Content for first tab - Ready to Respond
         $content .= \html_writer::start_div('tab-pane fade show active', ['id' => 'nav-home', 'role' => 'tabpanel', 'aria-labelledby' => 'nav-non-responded-tab', 'tabindex' => '0']);
-        $nonRespondedTable = new table($this->nonRespondedSurveyData ?? []);
+        $nonRespondedTable = new table($this->nonRespondedSurveyData ?? [], 'ready_to_respond');
         $content .= $nonRespondedTable->get_content()->text;
         $content .= \html_writer::end_div();
 
         // Content for second tab - Completed Surveys
         $content .= \html_writer::start_div('tab-pane fade', ['id' => 'nav-profile', 'role' => 'tabpanel', 'aria-labelledby' => 'nav-responded-tab', 'tabindex' => '0']);
-        $respondedTable = new table($this->respondedSurveyData ?? []);
+        $respondedTable = new table($this->respondedSurveyData ?? [], 'completed');
         $content .= $respondedTable->get_content()->text;
         $content .= \html_writer::end_div();
 
         // Content for third tab - Expired Surveys
         $content .= \html_writer::start_div('tab-pane fade', ['id' => 'nav-expired', 'role' => 'tabpanel', 'aria-labelledby' => 'nav-expired-tab', 'tabindex' => '0']);
-        $expiredTable = new table($this->expiredSurveyData ?? []);
+        $expiredTable = new table($this->expiredSurveyData ?? [], 'expired');
         $content .= $expiredTable->get_content()->text;
         $content .= \html_writer::end_div();
 

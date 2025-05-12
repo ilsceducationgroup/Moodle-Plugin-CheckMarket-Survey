@@ -26,6 +26,6 @@ defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'mod_ilsccheckmarket';
 $plugin->release = '0.1.2';
-$plugin->version = 2025050701;
+$plugin->version = 2025050707;
 $plugin->requires = 2014051200;
 $plugin->maturity = MATURITY_ALPHA;

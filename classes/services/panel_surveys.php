@@ -62,7 +62,7 @@ class panel_surveys
 
             throw new \Exception("Error: " . $message);
         }
-        
+
         $contactsData = $contacts->Data;
         if (!$contactsData) {
             return [];
@@ -75,7 +75,7 @@ class panel_surveys
                 $survey_id = $survey->SurveyId;
                 $service_survey_contacts = new survey_contacts($this->masterkey, $this->xkey, $survey_id);
                 $survey_contacts = $service_survey_contacts->get_survey_contacts($contact_id);
-                
+
                 $survey_details = $this->service_surveys->get_survey($survey_id);
                 $data = $survey_contacts->Data;
                 $row = new row();
@@ -99,6 +99,7 @@ class panel_surveys
                 $row->DateReminded = $data->DateReminded;
                 $row->DateRemindedPartial = $data->DateRemindedPartial;
                 $row->DateResponded = $data->DateResponded;
+                $row->PanelistReportUrl = $survey->PanelistReportUrl ?? null;
                 $panel_data[] = $row;
             }
         }

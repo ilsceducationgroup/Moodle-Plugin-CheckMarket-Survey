@@ -26,4 +26,5 @@ class row
     public ?string $DateReminded;
     public ?string $DateRemindedPartial;
     public ?string $DateResponded;
+    public ?string $PanelistReportUrl;
 }
