@@ -10,7 +10,7 @@ class table extends \block_base
 {
     public array $data;
 
-    public function __construct(array $data)
+    public function __construct(array $data, string $table_type = 'ready_to_respond')
     {
         $this->data = $data;
         $this->table_type = $table_type;
@@ -38,7 +38,7 @@ class table extends \block_base
                 'Respondent Status',
                 'Date Invited',
             );
-            $table->size = ['0', '40%', '25%', '25%', '10%'];
+            $table->size = ['0', '40%', '20%', '20%', '20%'];
         } else {
             // For ready_to_respond and completed surveys, include all columns
             $table->head = array(
