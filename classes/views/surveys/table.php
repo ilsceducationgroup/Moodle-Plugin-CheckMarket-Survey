@@ -34,23 +34,21 @@ class table extends \block_base
             $table->head = array(
                 'Id',
                 'Title',
-                'Survey Status',
                 'Respondent Status',
                 'Date Invited',
             );
-            $table->size = ['0', '40%', '20%', '20%', '20%'];
+            $table->size = ['0', '50%', '30%', '20%'];
         } else {
             // For ready_to_respond and completed surveys, include all columns
             $table->head = array(
                 'Id',
                 'Title',
-                'Survey Status',
                 'Respondent Status',
                 'Date Invited',
                 'Date Responded',
                 'Link',
             );
-            $table->size = ['0', '25%', '15%', '20%', '15%', '15%', '10%'];
+            $table->size = ['0', '30%', '20%', '15%', '15%', '20%'];
         }
 
         $table->attributes['class'] = 'generaltable table-sm';
@@ -74,7 +72,6 @@ class table extends \block_base
 
         $tr->cells[] = $id_cell;
         $tr->cells[] = new \html_table_cell($rowData->Title ?? '');
-        $tr->cells[] = new \html_table_cell($rowData->SurveyStatus ?? '');
         $tr->cells[] = new \html_table_cell($rowData->ContactStatus ?? '');
 
         $dateInput = function ($value) {

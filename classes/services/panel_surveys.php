@@ -77,6 +77,10 @@ class panel_surveys
                 $survey_contacts = $service_survey_contacts->get_survey_contacts($contact_id);
 
                 $survey_details = $this->service_surveys->get_survey($survey_id);
+                // Only include surveys with status "Live" (ID = 2) to strictly enforce only showing Live surveys
+                if ($survey_details->SurveyStatusId !== 2) {
+                    continue; // Skip non-Live surveys
+                }
                 $data = $survey_contacts->Data;
                 $row = new row();
                 $row->SurveyId = $survey_id;
