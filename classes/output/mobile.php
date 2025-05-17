@@ -8,7 +8,6 @@ use mod_ilsccheckmarket\services\panel_surveys as service_panel_surveys;
 
 class mobile
 {
-
     public static function mobile_course_page($args)
     {
         global $CFG, $OUTPUT, $PAGE, $USER, $DB;
@@ -21,32 +20,20 @@ class mobile
         $xkey = get_config('mod_ilsccheckmarket', 'xkey');
 
         if (!$masterkey || !$xkey) {
-            return self::create_return_array("<bold>Masterkey or xkey not set.</bold>");
-            die();
+            return self::create_return_array("<strong>Masterkey or xkey not set.</strong>");
         }
 
-        // $user_is_admin = self::user_is_admin($userid);
         $user_is_admin = false;
-
-        if (!$user_is_admin) {
-            $email = null;
-            $ilsc_number = $USER->idnumber;
-        } else {
-            $email = trim(optional_param('email', '', PARAM_TEXT));
-            $ilsc_number = trim(optional_param('ilscnumber', '', PARAM_TEXT));
-        }
+        $email = null;
+        $ilsc_number = $USER->idnumber;
 
         $service_panel_surveys = new service_panel_surveys($masterkey, $xkey);
-        $email = $USER->email;
-        if ($email) {
-            $service_panel_surveys->set_email($email);
+        if ($USER->email) {
+            $service_panel_surveys->set_email($USER->email);
         }
-
         if ($ilsc_number) {
             $service_panel_surveys->set_ilscnumber($ilsc_number);
         }
-
-        $panel_data = null;
 
         try {
             $panel_data = $service_panel_surveys->get_panel_data();
@@ -54,7 +41,7 @@ class mobile
             return self::create_return_array($e->getMessage());
         }
 
-        // In mobile.php, after processing panel_data
+        // Process panel data
         $respondedCompletelyId = 5;
         $currentTime = time();
 
@@ -62,81 +49,70 @@ class mobile
         $nonRespondedSurveyData = [];
         $expiredSurveyData = [];
 
-        // First transform panel_data into the format needed
-        $data = array_map(function ($row) {
-            $dateInvited = $row->DateInvited ? date('Y-m-d H:i', strtotime($row->DateInvited)) : '';
-            $dateResponded = $row->DateResponded ? date('Y-m-d H:i', strtotime($row->DateResponded)) : '';
-            return [
+        // Process each survey
+        foreach ($panel_data as $row) {
+            $item = [
                 'id' => $row->SurveyId,
                 'title' => $row->Title,
-                'status' => $row->SurveyStatus,
-                'respondent_status' => $row->ContactStatusId,
-                'date_invited' => $dateInvited,
-                'date_responded' => $dateResponded,
-                'link' => $row->LiveUrl,
+                'respondent_status' => $row->ContactStatus,
+                'date_invited' => $row->DateInvited ? date('Y-m-d H:i', strtotime($row->DateInvited)) : '',
+                'date_responded' => $row->DateResponded ? date('Y-m-d H:i', strtotime($row->DateResponded)) : '',
+                'live_url' => $row->LiveUrl,
+                'report_url' => $row->PanelistReportUrl,
                 'end_date' => $row->EndDate,
-                'start_date' => $row->StartDate
+                'start_date' => $row->StartDate,
+                'contact_status_id' => $row->ContactStatusId
             ];
-        }, $panel_data);
 
-        foreach ($data as $row) {
-            // Check for response status 
-            if ($row['respondent_status'] === $respondedCompletelyId) {
-                $respondedSurveyData[] = $row;
-            }
-            // Check for expiration - assuming survey end date or 14 days after invitation
-            else {
-                $endTime = isset($row['end_date']) ? strtotime($row['end_date']) : PHP_INT_MAX;
-                $invitedTime = !empty($row['date_invited']) ? strtotime($row['date_invited']) : 0;
-                $twoWeeksAfterInvite = $invitedTime + (14 * 24 * 60 * 60);
+            // Categorize surveys
+            $endTime = strtotime($row->EndDate);
+            $startTime = strtotime($row->StartDate);
 
-                if ($endTime < $currentTime || ($invitedTime && $twoWeeksAfterInvite < $currentTime)) {
-                    $expiredSurveyData[] = $row;
-                } else {
-                    $nonRespondedSurveyData[] = $row;
-                }
+            if ($row->ContactStatusId === $respondedCompletelyId) {
+                $respondedSurveyData[] = $item;
+            } else if ($endTime < $currentTime || ($row->DateInvited && strtotime($row->DateInvited) + (14 * 24 * 60 * 60) < $currentTime)) {
+                $expiredSurveyData[] = $item;
+            } else if ($startTime <= $currentTime && $currentTime <= $endTime) {
+                $nonRespondedSurveyData[] = $item;
             }
         }
 
-        $dataToTemplate = [];
-
-        if ($nonRespondedSurveyData) {
-            $dataToTemplate[] = [
+        // Prepare data for the template
+        $templateContext = [
+            'ready_to_respond' => [
                 'title' => get_string('ready_to_respond', 'mod_ilsccheckmarket'),
                 'count' => count($nonRespondedSurveyData),
                 'items' => $nonRespondedSurveyData,
-            ];
-        }
-
-        if ($respondedSurveyData) {
-            $dataToTemplate[] = [
+                'has_items' => !empty($nonRespondedSurveyData)
+            ],
+            'completed' => [
                 'title' => get_string('completed_surveys', 'mod_ilsccheckmarket'),
                 'count' => count($respondedSurveyData),
                 'items' => $respondedSurveyData,
-            ];
-        }
-
-        if ($expiredSurveyData) {
-            $dataToTemplate[] = [
+                'has_items' => !empty($respondedSurveyData)
+            ],
+            'expired' => [
                 'title' => get_string('expired_surveys', 'mod_ilsccheckmarket'),
                 'count' => count($expiredSurveyData),
                 'items' => $expiredSurveyData,
-            ];
-        }
+                'has_items' => !empty($expiredSurveyData)
+            ],
+            'cmid' => $cmid,
+            'courseid' => $courseid
+        ];
 
-        $template = 'mod_ilsccheckmarket/mobile';
+        $template = 'mod_ilsccheckmarket/mobile_card_view';
 
         return [
             'templates' => [
                 [
                     'id' => 'main',
-                    'html' => $OUTPUT->render_from_template($template, [
-                        'title' => get_string('moduletitle', 'mod_ilscaddressform'),
-                        'user' => $USER,
-                        'data' => $dataToTemplate,
-                    ]),
+                    'html' => $OUTPUT->render_from_template($template, $templateContext),
                 ],
             ],
+            'javascript' => '', // No JavaScript needed
+            'otherdata' => [],
+            'files' => []
         ];
     }
 
@@ -150,16 +126,5 @@ class mobile
                 ],
             ],
         ];
-    }
-
-    private static function user_is_admin($userid)
-    {
-        $admins = get_admins();
-        foreach ($admins as $admin) {
-            if ($userid == $admin->id) {
-                return true;
-            }
-        }
-        return false;
     }
 }

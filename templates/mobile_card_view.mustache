@@ -1,0 +1,194 @@
+<style>
+    .survey-section {
+        margin-bottom: 20px;
+    }
+    
+    .section-header {
+        background-color: var(--ion-color-light);
+        padding: 10px 16px;
+        margin-bottom: 10px;
+        border-radius: 8px 8px 0 0;
+        font-weight: 500;
+        color: var(--ion-color-dark);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .section-count {
+        background-color: var(--ion-color-primary);
+        color: white;
+        border-radius: 12px;
+        padding: 2px 8px;
+        font-size: 12px;
+    }
+    
+    .survey-card {
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin: 10px 16px;
+        overflow: hidden;
+    }
+    
+    .card-header {
+        background-color: white;
+        border-bottom: 1px solid var(--ion-color-light);
+        padding: 12px 16px;
+    }
+    
+    .card-header h2 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 500;
+    }
+    
+    .card-content {
+        padding: 12px 16px;
+        background-color: white;
+    }
+    
+    .card-content p {
+        margin: 6px 0;
+        font-size: 14px;
+    }
+    
+    .card-action {
+        padding: 10px 16px;
+        text-align: right;
+        background-color: white;
+        border-top: 1px solid var(--ion-color-light);
+    }
+    
+    .empty-message {
+        text-align: center;
+        padding: 20px;
+        color: var(--ion-color-medium);
+        font-style: italic;
+    }
+    
+    /* Add bottom padding to prevent content being covered by the activity bar */
+    .content-container {
+        padding-bottom: 80px; /* Add extra padding at the bottom */
+    }
+</style>
+
+<ion-content>
+    <div class="content-container">
+        <!-- Ready to Respond Section -->
+        {{#ready_to_respond.has_items}}
+        <div class="survey-section">
+            <div class="section-header">
+                <span>{{ready_to_respond.title}}</span>
+                <span class="section-count">{{ready_to_respond.count}}</span>
+            </div>
+            
+            {{#ready_to_respond.items}}
+            <div class="survey-card">
+                <div class="card-header">
+                    <h2>{{title}}</h2>
+                </div>
+                <div class="card-content">
+                    <p><strong>Status: </strong>{{respondent_status}}</p>
+                    <p><strong>Invited: </strong>{{date_invited}}</p>
+                </div>
+                {{#live_url}}
+                <div class="card-action">
+                    <ion-button size="small" fill="outline" onclick="window.open('{{live_url}}', '_system')">
+                        Open Survey
+                    </ion-button>
+                </div>
+                {{/live_url}}
+            </div>
+            {{/ready_to_respond.items}}
+        </div>
+        {{/ready_to_respond.has_items}}
+        {{^ready_to_respond.has_items}}
+        <div class="survey-section">
+            <div class="section-header">
+                <span>{{ready_to_respond.title}}</span>
+                <span class="section-count">0</span>
+            </div>
+            <div class="empty-message">
+                No surveys available to respond to at this time.
+            </div>
+        </div>
+        {{/ready_to_respond.has_items}}
+        
+        <!-- Completed Surveys Section -->
+        {{#completed.has_items}}
+        <div class="survey-section">
+            <div class="section-header">
+                <span>{{completed.title}}</span>
+                <span class="section-count">{{completed.count}}</span>
+            </div>
+            
+            {{#completed.items}}
+            <div class="survey-card">
+                <div class="card-header">
+                    <h2>{{title}}</h2>
+                </div>
+                <div class="card-content">
+                    <p><strong>Status: </strong>{{respondent_status}}</p>
+                    <p><strong>Invited: </strong>{{date_invited}}</p>
+                    <p><strong>Responded: </strong>{{date_responded}}</p>
+                </div>
+                {{#report_url}}
+                <div class="card-action">
+                    <ion-button size="small" fill="outline" onclick="window.open('{{report_url}}', '_system')">
+                        View Response
+                    </ion-button>
+                </div>
+                {{/report_url}}
+            </div>
+            {{/completed.items}}
+        </div>
+        {{/completed.has_items}}
+        {{^completed.has_items}}
+        <div class="survey-section">
+            <div class="section-header">
+                <span>{{completed.title}}</span>
+                <span class="section-count">0</span>
+            </div>
+            <div class="empty-message">
+                You have not completed any surveys yet.
+            </div>
+        </div>
+        {{/completed.has_items}}
+        
+        <!-- Expired Surveys Section -->
+        {{#expired.has_items}}
+        <div class="survey-section">
+            <div class="section-header">
+                <span>{{expired.title}}</span>
+                <span class="section-count">{{expired.count}}</span>
+            </div>
+            
+            {{#expired.items}}
+            <div class="survey-card">
+                <div class="card-header">
+                    <h2>{{title}}</h2>
+                </div>
+                <div class="card-content">
+                    <p><strong>Status: </strong>{{respondent_status}}</p>
+                    <p><strong>Invited: </strong>{{date_invited}}</p>
+                </div>
+            </div>
+            {{/expired.items}}
+        </div>
+        {{/expired.has_items}}
+        {{^expired.has_items}}
+        <div class="survey-section">
+            <div class="section-header">
+                <span>{{expired.title}}</span>
+                <span class="section-count">0</span>
+            </div>
+            <div class="empty-message">
+                No expired surveys.
+            </div>
+        </div>
+        {{/expired.has_items}}
+        
+        <!-- Add spacer div to ensure bottom content is visible -->
+        <div style="height: 60px;"></div>
+    </div>
+</ion-content>
